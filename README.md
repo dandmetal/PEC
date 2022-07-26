@@ -13,5 +13,15 @@ Usage:
 
 To train, unzip the dataset, put the correct path inside PEC.py and train with:
 
+```console
 python3 PEC.py
+```
+
+To evaluate a dataset, call:
+
+```console
+python3 evaluate.py
+```
+
+Changing the apropriate names, classes and sample size.
 
