@@ -137,25 +137,19 @@ class PEC(pl.LightningModule):
 def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     actual = sys.path[0]
-    dataset_dir = './modelnet10_pre'
-    val_dir = './modelnet10_pre'
-    # dataset_dir = "./modelnet10_pre"
-    # train_path = actual + dataset_dir
-    # val_path = actual + val_dir
+    dataset_dir = './64_16/train'
+    val_dir = "./64_16/val"
+
     print("Loading dataset...")
-    train_loader = ReadSet(dataset_dir, device, type="train")
-    val_loader = ReadSet(val_dir, device, type= "train")
+    train_loader = ReadSet(dataset_dir, device)
+    val_loader = ReadSet(val_dir, device)
     print("Dataset loaded")
 
-    net = PEC(input_size=64, num_class=10, lr=1e-03)
+    net = PEC(input_size=64, num_class=5, lr=1e-02)
     net.to(device)
 
     print("Starting training data....")
-    # dataset_size = float(len(train_loader))
-    # train_size = int(dataset_size * 0.8)
-    # val_size = int(dataset_size - train_size)
-    # train_set, val_set = torch.utils.data.random_split(train_loader, [train_size, val_size])
-    # train_set, val_set = torch.utils.data.random_split(train_loader, [4000, 1000])
+
     train_loader = DataLoader(train_loader, batch_size=1024 * 256,
                               shuffle=False, num_workers=0)
     test_loader = DataLoader(val_loader, batch_size=1024 * 256,
@@ -178,12 +172,8 @@ def main():
         dirpath="./",
         filename="PEC-{epoch:02d}-{val_acc:.2f}",
     )
-    #trainer = pl.Trainer(gpus=1, max_epochs=150, callbacks=[val_callback, acc_callback])
-    trainer = pl.Trainer(gpus=1, max_epochs=300, checkpoint_callback=False)
-    # lr_finder = trainer.tuner.lr_find(net, train_loader)
-    # print(lr_finder.suggestion())
-    # fig = lr_finder.plot(suggest=True)
-    # fig.show()
+    trainer = pl.Trainer(gpus=1, max_epochs=150, callbacks=[val_callback, acc_callback])
+    #trainer = pl.Trainer(gpus=1, max_epochs=300, checkpoint_callback=False)
 
     trainer.fit(net, train_loader, test_loader)
     trainer.save_checkpoint("./modelPEC.ckpt")
@@ -200,29 +190,6 @@ def main():
     ax2.set_title('Accuracy over time')
     ax2.plot(net.acc)
     plt.show()
-
-    """
-    import time
-    class_names = ['banana', 'bleach', 'clamp', 'drill', 'tomato']
-    path = "/home/daniel/Cloud_Classi/modelPEC.ckpt"
-    obj_path = "/home/daniel/Cloud_Classi/experimentos/256_64/caneca/20.npy"
-    net = PEC.load_from_checkpoint(path).to(device)
-    net.freeze()
-    print(net)
-    predict_location = ""
-    x = np.load(obj_path)
-    # print(x)
-    #x = o3d.io.read_point_cloud(obj_path)
-    #x = np.asarray(x.points)
-    for i in range(100):
-        start = time.time()
-        predicted = net.predict(x, device, class_names)
-        end = time.time()
-        print(end - start)
-    print(predicted)
-    print(class_names[predicted[0]])
-    print(sum(p.numel() for p in net.parameters() if p.requires_grad))     
-"""
 
 
 if __name__ == '__main__':
